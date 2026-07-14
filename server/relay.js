@@ -10,11 +10,19 @@ export function createRelay({ server, getSnapshot, intervalMs }) {
   }
 
   wss.on('connection', (client) => {
+    client.on('error', (e) => console.error('[relay]', e.message));
     send(client); // immediate snapshot on connect
   });
 
+  wss.on('error', (e) => console.error('[relay] server', e.message));
+
   const timer = setInterval(() => {
-    for (const client of wss.clients) send(client);
+    // Build the payload once per tick, not once per client — with a global
+    // bbox the snapshot can be 50k+ vessels, and JSON.stringify is not cheap.
+    const payload = JSON.stringify({ type: 'snapshot', vessels: getSnapshot() });
+    for (const client of wss.clients) {
+      if (client.readyState === client.OPEN) client.send(payload);
+    }
   }, intervalMs);
 
   return {

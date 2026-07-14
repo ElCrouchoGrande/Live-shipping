@@ -16,7 +16,7 @@ function loadDotEnv() {
   if (!fs.existsSync(envPath)) return;
   for (const line of fs.readFileSync(envPath, 'utf8').split('\n')) {
     const m = line.match(/^\s*([\w.]+)\s*=\s*(.*)\s*$/);
-    if (m && !(m[1] in process.env)) process.env[m[1]] = m[2].replace(/^["']|["']$/g, '');
+    if (m && !(m[1] in process.env)) process.env[m[1]] = m[2].trim().replace(/^["']|["']$/g, '');
   }
 }
 
@@ -49,6 +49,14 @@ startAisClient({
 
 // Periodically age out stale vessels.
 setInterval(() => store.pruneStale(Date.now()), 60000);
+
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`Port ${config.port} is already in use — set PORT in .env`);
+    process.exit(1);
+  }
+  throw err;
+});
 
 server.listen(config.port, () => {
   console.log(`Live Shipping Map running at http://localhost:${config.port}`);

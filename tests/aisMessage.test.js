@@ -26,3 +26,34 @@ test('returns null for unsupported types', () => {
   assert.equal(parseAisMessage({}), null);
   assert.equal(parseAisMessage(null), null);
 });
+
+test('TrueHeading 511 (not available) maps to null', () => {
+  const msg = {
+    MessageType: 'PositionReport',
+    MetaData: { MMSI: 1, ShipName: 'X' },
+    Message: { PositionReport: { Latitude: 1, Longitude: 2, Sog: 5, TrueHeading: 511 } },
+  };
+  assert.equal(parseAisMessage(msg).heading, null);
+});
+
+test('Sog 102.3 (not available) maps to null', () => {
+  const msg = {
+    MessageType: 'PositionReport',
+    MetaData: { MMSI: 1, ShipName: 'X' },
+    Message: { PositionReport: { Latitude: 1, Longitude: 2, Sog: 102.3, TrueHeading: 90 } },
+  };
+  assert.equal(parseAisMessage(msg).sog, null);
+});
+
+test('out-of-range position (Latitude 91, not available) returns null', () => {
+  const msg = {
+    MessageType: 'PositionReport',
+    MetaData: { MMSI: 1, ShipName: 'X' },
+    Message: { PositionReport: { Latitude: 91, Longitude: 2, Sog: 5, TrueHeading: 90 } },
+  };
+  assert.equal(parseAisMessage(msg), null);
+});
+
+test('an AISStream error frame returns null instead of being treated as a report', () => {
+  assert.equal(parseAisMessage({ error: 'Api Key Is Not Valid' }), null);
+});

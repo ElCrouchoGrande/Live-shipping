@@ -1,3 +1,7 @@
+function round4(n) {
+  return Math.round(n * 10000) / 10000;
+}
+
 export function createVesselStore({ staleMs }) {
   const vessels = new Map(); // mmsi -> record
 
@@ -39,7 +43,7 @@ export function createVesselStore({ staleMs }) {
       const out = [];
       for (const v of vessels.values()) {
         if (v.lat != null && v.lon != null) {
-          out.push({ mmsi: v.mmsi, lat: v.lat, lon: v.lon, heading: v.heading, sog: v.sog, name: v.name, shipType: v.shipType, lastSeen: v.lastSeen });
+          out.push({ mmsi: v.mmsi, lat: round4(v.lat), lon: round4(v.lon), heading: v.heading, sog: v.sog, name: v.name, shipType: v.shipType, lastSeen: v.lastSeen });
         }
       }
       return out;

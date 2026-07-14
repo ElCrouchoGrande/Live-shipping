@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createVesselStore } from '../server/vesselStore.js';
 
-const pos = (mmsi, lat, lon) => ({ kind: 'position', mmsi, lat, lon, cog: null, sog: 5, heading: 90, name: 'X' });
+const pos = (mmsi, lat, lon) => ({ kind: 'position', mmsi, lat, lon, sog: 5, heading: 90, name: 'X' });
 
 test('apply then snapshot returns the vessel', () => {
   const s = createVesselStore({ staleMs: 1000 });
