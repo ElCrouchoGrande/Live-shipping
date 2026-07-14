@@ -14,6 +14,8 @@ const GLOBAL_BBOX = [[[-90, -180], [90, 180]]];
 
 // AISStream is a firehose; a minute of total silence means the connection is dead.
 const WATCHDOG_MS = 60000;
+// Poll at half the threshold so worst-case detection is ~1.5x, not 2x, the threshold.
+const WATCHDOG_TICK_MS = WATCHDOG_MS / 2;
 
 export function buildSubscription(apiKey) {
   return {
@@ -46,7 +48,7 @@ export function startAisClient({ apiKey, onReport, log = () => {} }) {
         log('AIS watchdog: no messages for 60s, terminating connection');
         if (ws) ws.terminate();
       }
-    }, WATCHDOG_MS);
+    }, WATCHDOG_TICK_MS);
   }
 
   function connect() {

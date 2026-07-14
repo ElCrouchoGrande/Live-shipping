@@ -57,3 +57,33 @@ test('out-of-range position (Latitude 91, not available) returns null', () => {
 test('an AISStream error frame returns null instead of being treated as a report', () => {
   assert.equal(parseAisMessage({ error: 'Api Key Is Not Valid' }), null);
 });
+
+// Math.abs(undefined) is NaN and NaN > 90 is false, so a bare range check would
+// let a missing coordinate through as {lat: undefined} — which would then wipe a
+// vessel's previously-good position in the store.
+test('a PositionReport with a missing Latitude returns null', () => {
+  const msg = {
+    MessageType: 'PositionReport',
+    MetaData: { MMSI: 1, ShipName: 'X' },
+    Message: { PositionReport: { Longitude: 2, Sog: 5, TrueHeading: 90 } },
+  };
+  assert.equal(parseAisMessage(msg), null);
+});
+
+test('a PositionReport with a non-numeric Latitude returns null', () => {
+  const msg = {
+    MessageType: 'PositionReport',
+    MetaData: { MMSI: 1, ShipName: 'X' },
+    Message: { PositionReport: { Latitude: '12.3', Longitude: 2, Sog: 5, TrueHeading: 90 } },
+  };
+  assert.equal(parseAisMessage(msg), null);
+});
+
+test('a negative Sog maps to null', () => {
+  const msg = {
+    MessageType: 'PositionReport',
+    MetaData: { MMSI: 1, ShipName: 'X' },
+    Message: { PositionReport: { Latitude: 1, Longitude: 2, Sog: -3, TrueHeading: 90 } },
+  };
+  assert.equal(parseAisMessage(msg).sog, null);
+});

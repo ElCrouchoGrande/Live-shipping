@@ -55,6 +55,7 @@ server.on('error', (err) => {
     console.error(`Port ${config.port} is already in use — set PORT in .env`);
     process.exit(1);
   }
+  console.error(`Server error (${err.code || 'unknown'}): ${err.message}`);
   throw err;
 });
 

@@ -11,7 +11,7 @@ function headingOrNull(h) {
 
 // AIS Sog uses 102.3 to mean "not available".
 function sogOrNull(s) {
-  return typeof s === 'number' && s <= 102 ? s : null;
+  return typeof s === 'number' && s >= 0 && s <= 102 ? s : null;
 }
 
 export function parseAisMessage(msg) {
@@ -25,8 +25,17 @@ export function parseAisMessage(msg) {
     const p = msg.Message?.PositionReport;
     if (!p) return null;
     // 91 / 181 are AIS sentinels for "not available"; a phantom vessel would
-    // otherwise be plotted at an invalid coordinate.
-    if (Math.abs(p.Latitude) > 90 || Math.abs(p.Longitude) > 180) return null;
+    // otherwise be plotted at an invalid coordinate. The typeof checks matter:
+    // Math.abs(undefined) is NaN, and NaN > 90 is false, so a missing
+    // coordinate would slip through a bare range check.
+    if (
+      typeof p.Latitude !== 'number' ||
+      typeof p.Longitude !== 'number' ||
+      Math.abs(p.Latitude) > 90 ||
+      Math.abs(p.Longitude) > 180
+    ) {
+      return null;
+    }
     return {
       kind: 'position',
       mmsi,

@@ -17,6 +17,9 @@ export function createRelay({ server, getSnapshot, intervalMs }) {
   wss.on('error', (e) => console.error('[relay] server', e.message));
 
   const timer = setInterval(() => {
+    // Nobody listening: don't pay to serialize a 50k-vessel snapshot every tick
+    // on an idle server with no browser tab open.
+    if (wss.clients.size === 0) return;
     // Build the payload once per tick, not once per client — with a global
     // bbox the snapshot can be 50k+ vessels, and JSON.stringify is not cheap.
     const payload = JSON.stringify({ type: 'snapshot', vessels: getSnapshot() });
