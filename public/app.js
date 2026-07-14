@@ -8,14 +8,25 @@ const map = new maplibregl.Map({
 const statusEl = document.getElementById('status');
 
 map.on('load', async () => {
-  // Lane routes layer (below vessels).
+  // Lane routes layer (below vessels). The dataset has three features — Major,
+  // Middle and Minor — so weight them by importance rather than drawing all
+  // 28k points at the same emphasis, which would just read as noise.
   const lanes = await fetch('data/shipping-lanes.geojson').then((r) => r.json());
-  map.addSource('lanes', { type: 'geojson', data: lanes });
+  map.addSource('lanes', {
+    type: 'geojson',
+    data: lanes,
+    attribution:
+      'Shipping lanes: <a href="https://doi.org/10.5281/zenodo.6361763">Benden, P. (2022)</a>, CC BY-SA 4.0',
+  });
   map.addLayer({
     id: 'lanes',
     type: 'line',
     source: 'lanes',
-    paint: { 'line-color': '#3aa0ff', 'line-width': 1.5, 'line-opacity': 0.5 },
+    paint: {
+      'line-color': '#3aa0ff',
+      'line-width': ['match', ['get', 'Type'], 'Major', 1.6, 'Middle', 1.0, 0.6],
+      'line-opacity': ['match', ['get', 'Type'], 'Major', 0.75, 'Middle', 0.45, 0.25],
+    },
   });
 
   // Vessels layer (above lanes).
