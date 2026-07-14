@@ -2,7 +2,8 @@
 
 A local web app showing live AIS vessels moving over the major global shipping lanes.
 
-- **Lanes** — 9 major corridors (Suez, Panama, Malacca, transpacific, transatlantic…) drawn as a static layer.
+- **Lanes** — real global shipping lanes (28,766 points), classified Major / Middle / Minor
+  and weighted by importance. Static layer, always renders regardless of feed status.
 - **Vessels** — live positions from [AISStream.io](https://aisstream.io/), updated every 2.5s. Click a ship for name, speed, heading, type.
 
 ## Setup
@@ -38,6 +39,17 @@ layer is static and always renders regardless of feed status.
 
 **Status indicator** (top-left) tells you which half is working: `connecting…` → `live — N vessels`.
 Lanes rendering + `live — 0 vessels` means the map is fine and the feed is not.
+
+## Data sources & attribution
+
+**Shipping lanes** — Benden, P. (2022). *Global Shipping Lanes* [Data set]. Zenodo.
+https://doi.org/10.5281/zenodo.6361763 — licensed **CC BY-SA 4.0**. Georeferenced from the
+CIA's *Map of the World's Oceans* (October 2012). Attribution is rendered on the map itself
+via the MapLibre attribution control; keep it if you redistribute this.
+
+**Vessel positions** — [AISStream.io](https://aisstream.io/) live AIS feed.
+
+**Basemap** — CARTO Dark Matter / OpenStreetMap contributors.
 
 ## Architecture
 
