@@ -2,7 +2,7 @@ const map = new maplibregl.Map({
   container: 'map',
   style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
   center: [30, 20],
-  zoom: 1.6,
+  zoom: 2.2,
   canvasContextAttributes: { antialias: true },
 });
 
