@@ -1,3 +1,24 @@
+// Static starfield drawn behind the (transparent-backed) globe.
+function drawStars() {
+  const c = document.getElementById('stars');
+  const dpr = window.devicePixelRatio || 1;
+  c.width = innerWidth * dpr;
+  c.height = innerHeight * dpr;
+  const g = c.getContext('2d');
+  g.scale(dpr, dpr);
+  const n = Math.round((innerWidth * innerHeight) / 2500);
+  for (let i = 0; i < n; i++) {
+    const r = Math.random() < 0.9 ? Math.random() * 0.7 + 0.3 : Math.random() * 0.8 + 1;
+    g.globalAlpha = Math.random() * 0.6 + 0.3;
+    g.fillStyle = Math.random() < 0.15 ? '#bcd4ff' : '#fff';
+    g.beginPath();
+    g.arc(Math.random() * innerWidth, Math.random() * innerHeight, r, 0, Math.PI * 2);
+    g.fill();
+  }
+}
+drawStars();
+addEventListener('resize', drawStars);
+
 const map = new maplibregl.Map({
   container: 'map',
   style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
@@ -11,7 +32,7 @@ map.on('style.load', () => {
   map.setProjection({ type: 'globe' });
   // Space backdrop plus a soft atmospheric rim so the globe edge isn't a hard cut-out.
   map.setSky({
-    'sky-color': '#05070d',
+    'sky-color': 'rgba(5, 7, 13, 0)', // transparent so the star canvas shows through
     'horizon-color': '#2a5f9e',
     'fog-color': '#0d1a2e',
     'sky-horizon-blend': 0.6,
