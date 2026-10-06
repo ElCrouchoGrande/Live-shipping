@@ -22,13 +22,31 @@ function loadDotEnv() {
 
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.geojson': 'application/json', '.json': 'application/json' };
 
+const SECURITY_HEADERS = {
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'Referrer-Policy': 'no-referrer',
+  'Content-Security-Policy': [
+    "default-src 'self'",
+    "script-src 'self' https://unpkg.com",
+    "style-src 'self' 'unsafe-inline' https://unpkg.com",
+    "img-src 'self' data: blob: https:",
+    "connect-src 'self' ws: wss: https:",
+    "worker-src blob:",
+    "object-src 'none'",
+    "base-uri 'none'",
+    "frame-ancestors 'none'",
+  ].join('; '),
+};
+
 function serveStatic(req, res) {
-  const urlPath = req.url === '/' ? '/index.html' : req.url.split('?')[0];
+  const reqPath = req.url.split('?')[0];
+  const urlPath = reqPath === '/' ? '/index.html' : reqPath;
   const filePath = path.join(publicDir, path.normalize(urlPath));
-  if (!filePath.startsWith(publicDir)) { res.writeHead(403).end(); return; }
+  if (!filePath.startsWith(publicDir + path.sep)) { res.writeHead(403, SECURITY_HEADERS).end(); return; }
   fs.readFile(filePath, (err, data) => {
-    if (err) { res.writeHead(404).end('Not found'); return; }
-    res.writeHead(200, { 'Content-Type': MIME[path.extname(filePath)] || 'application/octet-stream' });
+    if (err) { res.writeHead(404, SECURITY_HEADERS).end('Not found'); return; }
+    res.writeHead(200, { ...SECURITY_HEADERS, 'Content-Type': MIME[path.extname(filePath)] || 'application/octet-stream' });
     res.end(data);
   });
 }
