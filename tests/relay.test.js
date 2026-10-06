@@ -65,3 +65,52 @@ test('a connected client still receives periodic broadcasts', async () => {
   relay.stop();
   await new Promise((r) => server.close(r));
 });
+
+function listen(server) {
+  return new Promise((r) => server.listen(0, r));
+}
+
+function expectRejected(url, opts) {
+  return new Promise((resolve) => {
+    const c = new WebSocket(url, opts);
+    c.on('unexpected-response', (_req, res) => resolve(res.statusCode));
+    c.on('error', () => {});
+  });
+}
+
+test('rejects a cross-origin WebSocket handshake', async () => {
+  const server = http.createServer();
+  await listen(server);
+  const relay = createRelay({ server, getSnapshot: () => [], intervalMs: 100000 });
+  const status = await expectRejected(`ws://localhost:${server.address().port}`, {
+    headers: { Origin: 'https://evil.example' },
+  });
+  assert.equal(status, 403);
+  relay.stop();
+  await new Promise((r) => server.close(r));
+});
+
+test('accepts a same-origin WebSocket handshake', async () => {
+  const server = http.createServer();
+  await listen(server);
+  const port = server.address().port;
+  const relay = createRelay({ server, getSnapshot: () => [], intervalMs: 100000 });
+  const client = new WebSocket(`ws://localhost:${port}`, { headers: { Origin: `http://localhost:${port}` } });
+  await once(client, 'message');
+  client.close();
+  relay.stop();
+  await new Promise((r) => server.close(r));
+});
+
+test('rejects connections beyond maxClients', async () => {
+  const server = http.createServer();
+  await listen(server);
+  const url = `ws://localhost:${server.address().port}`;
+  const relay = createRelay({ server, getSnapshot: () => [], intervalMs: 100000, maxClients: 1 });
+  const first = new WebSocket(url);
+  await once(first, 'message');
+  assert.equal(await expectRejected(url), 503);
+  first.close();
+  relay.stop();
+  await new Promise((r) => server.close(r));
+});
