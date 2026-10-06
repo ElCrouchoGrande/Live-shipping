@@ -3,10 +3,23 @@ const map = new maplibregl.Map({
   style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
   center: [30, 20],
   zoom: 1.6,
+  canvasContextAttributes: { antialias: true },
 });
 
 // The basemap style doesn't declare a projection, so set it once the style is in.
-map.on('style.load', () => map.setProjection({ type: 'globe' }));
+map.on('style.load', () => {
+  map.setProjection({ type: 'globe' });
+  // Space backdrop plus a soft atmospheric rim so the globe edge isn't a hard cut-out.
+  map.setSky({
+    'sky-color': '#05070d',
+    'horizon-color': '#2a5f9e',
+    'fog-color': '#0d1a2e',
+    'sky-horizon-blend': 0.6,
+    'horizon-fog-blend': 0.6,
+    'fog-ground-blend': 0.3,
+    'atmosphere-blend': ['interpolate', ['linear'], ['zoom'], 0, 1, 5, 1, 7, 0],
+  });
+});
 
 // Zoom buttons + compass; the compass icon tilts with the map's pitch.
 map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }));
