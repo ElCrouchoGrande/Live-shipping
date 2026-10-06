@@ -5,6 +5,12 @@ const map = new maplibregl.Map({
   zoom: 1.6,
 });
 
+// The basemap style doesn't declare a projection, so set it once the style is in.
+map.on('style.load', () => map.setProjection({ type: 'globe' }));
+
+// Zoom buttons + compass; the compass icon tilts with the map's pitch.
+map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }));
+
 const statusEl = document.getElementById('status');
 
 map.on('load', async () => {
@@ -45,14 +51,16 @@ map.on('load', async () => {
 
   map.on('click', 'vessels', (e) => {
     const p = e.features[0].properties;
+    // AIS names are broadcast by the vessels themselves, so treat them as untrusted.
+    const esc = (v) => String(v).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
     new maplibregl.Popup()
       .setLngLat(e.lngLat)
       .setHTML(
-        `<strong>${p.name || 'Unknown'}</strong><br/>` +
-        `MMSI: ${p.mmsi}<br/>` +
-        `Speed: ${p.sog ?? '—'} kn<br/>` +
-        `Heading: ${p.heading ?? '—'}°<br/>` +
-        `Type: ${p.shipType ?? '—'}`
+        `<strong>${esc(p.name || 'Unknown')}</strong><br/>` +
+        `MMSI: ${esc(p.mmsi)}<br/>` +
+        `Speed: ${esc(p.sog ?? '—')} kn<br/>` +
+        `Heading: ${esc(p.heading ?? '—')}°<br/>` +
+        `Type: ${esc(p.shipType ?? '—')}`
       )
       .addTo(map);
   });
